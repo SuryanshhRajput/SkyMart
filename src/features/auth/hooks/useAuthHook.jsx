@@ -2,11 +2,17 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { addUser } from "../state/authSlice";
+import { addUser, removerUser } from "../state/authSlice";
 
 export const useAuth = () => {
   let navigate = useNavigate();
   let dispatch = useDispatch();
+  let {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm();
 
   const [registeredForm, setRegisteredForm] = useState(
     JSON.parse(localStorage.getItem("registeredForm")) || [],
@@ -18,6 +24,8 @@ export const useAuth = () => {
     setRegisteredForm(arr);
     localStorage.setItem("registeredForm", JSON.stringify(arr));
 
+    dispatch(addUser(data));
+    localStorage.setItem("loggedInUser", JSON.stringify(data));
     navigate("/home");
     reset();
   };
@@ -40,12 +48,10 @@ export const useAuth = () => {
     reset();
   };
 
-  let {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm();
+  let handleLogout = () => {
+    dispatch(removerUser());
+    navigate("/");
+  };
 
   return {
     navigate,
@@ -54,5 +60,6 @@ export const useAuth = () => {
     errors,
     registerForm,
     loginForm,
+    handleLogout,
   };
 };

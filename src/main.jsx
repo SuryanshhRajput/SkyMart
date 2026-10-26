@@ -1,12 +1,17 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import AppRoutes from "./routes/AppRoutes.jsx";
 import { Provider } from "react-redux";
 import { store } from "./app/store.jsx";
 
+const queryClient = new QueryClient();
+
 createRoot(document.getElementById("root")).render(
-  <Provider store={store}>
-    <AppRoutes />
-  </Provider>,
+  <QueryClientProvider client={queryClient}>
+    <Provider store={store}>
+      <AppRoutes />
+    </Provider>
+  </QueryClientProvider>,
 );
