@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { addUser, removerUser } from "../state/authSlice";
+import { clearCart } from "../../cart/state/cartSlice";
 
 export const useAuth = () => {
   let navigate = useNavigate();
@@ -50,6 +51,7 @@ export const useAuth = () => {
 
   let handleLogout = () => {
     dispatch(removerUser());
+    dispatch(clearCart());
     navigate("/");
   };
 

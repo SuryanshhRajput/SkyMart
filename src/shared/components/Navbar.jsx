@@ -8,7 +8,10 @@ import { useAuth } from "../../features/auth/hooks/useAuthHook";
 const Navbar = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  let { user } = useSelector((store) => store.auth);
+  const { user } = useSelector((store) => store.auth);
+  const totalItems = useSelector((store) =>
+    store.cart.products.reduce((total, product) => total + product.quantity, 0),
+  );
 
   let { handleLogout } = useAuth();
 
@@ -62,7 +65,7 @@ const Navbar = () => {
             type="button"
             onClick={() => setIsCartOpen(true)}
             aria-label="Open shopping cart"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-neutral-300 transition hover:border-[#ccff00]/50 hover:text-[#ccff00]"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-neutral-300 transition hover:border-[#ccff00]/50 hover:text-[#ccff00]"
           >
             <svg
               viewBox="0 0 24 24"
@@ -75,6 +78,11 @@ const Navbar = () => {
               <circle cx="10" cy="20" r="1" />
               <circle cx="18" cy="20" r="1" />
             </svg>
+            {totalItems > 0 && (
+              <span className="absolute right-0 top-0 flex h-5 min-w-5 -translate-y-1/3 translate-x-1/3 items-center justify-center rounded-full bg-[#ccff00] px-1 text-[10px] font-bold text-black">
+                {totalItems}
+              </span>
+            )}
           </button>
 
           <button

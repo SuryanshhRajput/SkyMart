@@ -1,11 +1,53 @@
 
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
+import { useProductApi } from "../../features/products/hooks/productHook";
+import ProductCard from "../../features/products/ui/components/ProductCard";
 
 const HomePage = () => {
-  let { user } = useSelector((store) => store.auth);
+  const { user } = useSelector((store) => store.auth);
   const firstName = user?.name?.split(" ")[0];
-  let navigate = useNavigate();
+  const navigate = useNavigate();
+  const { data, isPending } = useProductApi();
+  const products = Array.isArray(data) ? data : [];
+  const allCategories = [
+    ...new Map(
+      products
+        .filter((product) => product.category)
+        .map((product) => [product.category, product]),
+    ).values(),
+  ];
+  const categories = allCategories.slice(0, 6);
+  const featuredProducts = products.slice(0, 4);
+  const topRatedProducts = [...products]
+    .sort((first, second) => (second.rating || 0) - (first.rating || 0))
+    .slice(0, 4);
+  const overviewItems = [
+    {
+      label: "Products to discover",
+      value: isPending ? "…" : products.length,
+      detail: "A handpicked range for every day",
+      icon: "✦",
+    },
+    {
+      label: "Categories",
+      value: isPending ? "…" : allCategories.length,
+      detail: "Find something that fits your style",
+      icon: "▦",
+    },
+    {
+      label: "Delivery",
+      value: "FREE",
+      detail: "On orders above ₹299",
+      icon: "↗",
+    },
+    {
+      label: "Shopping",
+      value: "Easy",
+      detail: "Browse, choose, and enjoy",
+      icon: "♡",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-[#0b0b0b] text-white">
@@ -81,17 +123,28 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* Overview section — reserved for future dynamic data */}
+        {/* Store highlights */}
         <section className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
+          {overviewItems.map((item) => (
             <div
-              key={index}
-              className="min-h-[120px] rounded-[22px] border border-white/70 bg-[#111111] sm:min-h-[128px]"
-            />
+              key={item.label}
+              className="min-h-[120px] rounded-[22px] border border-white/10 bg-[#111111] p-5 transition hover:border-[#ccff00]/30 sm:min-h-[128px]"
+            >
+              <div className="flex items-start justify-between">
+                <p className="text-sm text-neutral-400">{item.label}</p>
+                <span className="text-lg text-[#ccff00]" aria-hidden="true">
+                  {item.icon}
+                </span>
+              </div>
+              <p className="mt-3 text-2xl font-semibold text-white">
+                {item.value}
+              </p>
+              <p className="mt-1 text-xs text-neutral-500">{item.detail}</p>
+            </div>
           ))}
         </section>
 
-        {/* Categories — reserved for future category data */}
+        {/* Categories */}
         <section className="mt-12">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
@@ -108,32 +161,82 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <div
-                key={index}
-                className="min-h-[140px] rounded-2xl border border-white/10 bg-[#111111] transition hover:border-[#ccff00]/40 sm:min-h-[150px]"
-              />
-            ))}
+            {isPending
+              ? Array.from({ length: 6 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="min-h-[140px] animate-pulse rounded-2xl border border-white/10 bg-[#111111] sm:min-h-[150px]"
+                  />
+                ))
+              : categories.map((product) => (
+                  <button
+                    key={product.category}
+                    type="button"
+                    onClick={() => navigate("/home/shop")}
+                    className="group relative min-h-[140px] overflow-hidden rounded-2xl border border-white/10 bg-[#151515] text-left transition hover:border-[#ccff00]/50 sm:min-h-[150px]"
+                  >
+                    {(product.thumbnail || product.images?.[0]) && (
+                      <img
+                        src={product.thumbnail || product.images[0]}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover opacity-35 transition duration-500 group-hover:scale-105 group-hover:opacity-50"
+                      />
+                    )}
+                    <span className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                    <span className="relative flex h-full min-h-[140px] flex-col justify-end p-4 sm:min-h-[150px]">
+                      <span className="text-sm font-semibold capitalize text-white">
+                        {product.category.replaceAll("-", " ")}
+                      </span>
+                      <span className="mt-1 text-xs text-neutral-300">
+                        Explore collection →
+                      </span>
+                    </span>
+                  </button>
+                ))}
           </div>
         </section>
 
-        {/* Product collections — reserved for future product data */}
+        {/* Product collections */}
         <section className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {[0, 1].map((section) => (
+          {[
+            { title: "Featured Finds", items: featuredProducts },
+            { title: "Top Rated", items: topRatedProducts },
+          ].map((collection) => (
             <div
-              key={section}
+              key={collection.title}
               className="rounded-[24px] border border-white/10 bg-[#111111] p-5 sm:p-7"
             >
-              <div className="mb-6 h-7 w-40 rounded-md bg-white/5" />
-
-              <div className="space-y-2.5">
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className="min-h-[78px] rounded-2xl border border-white/10 bg-[#151515]"
-                  />
-                ))}
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <h2 className="text-lg font-semibold">{collection.title}</h2>
+                <button
+                  onClick={() => navigate("/home/shop")}
+                  type="button"
+                  className="text-sm font-medium text-[#ccff00] transition hover:text-white"
+                >
+                  Shop all →
+                </button>
               </div>
+
+              {isPending ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-[300px] animate-pulse rounded-[22px] border border-white/10 bg-[#151515]"
+                    />
+                  ))}
+                </div>
+              ) : collection.items.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {collection.items.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-2xl border border-white/10 bg-[#151515] px-4 py-8 text-center text-sm text-neutral-500">
+                  No products available right now.
+                </p>
+              )}
             </div>
           ))}
         </section>

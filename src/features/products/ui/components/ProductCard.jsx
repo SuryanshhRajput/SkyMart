@@ -1,9 +1,40 @@
 
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addCartProduct } from "../../../cart/state/cartSlice";
+
 const ProductCard = ({ product }) => {
+  const dispatch = useDispatch();
+  const user = useSelector((store) => store.auth.user);
+  const { isAdding } = useSelector((store) => store.cart);
+  const [wasAdded, setWasAdded] = useState(false);
+  const [addError, setAddError] = useState("");
+
   if (!product) return null;
 
   const image = product.thumbnail || product.images?.[0] || product.image;
   const name = product.title || product.name || "Untitled product";
+
+  const handleAddToCart = async () => {
+    setWasAdded(false);
+    setAddError("");
+
+    try {
+      await dispatch(
+        addCartProduct({
+          product,
+          userId: Number.isInteger(user?.id) ? user.id : 1,
+        }),
+      ).unwrap();
+      setWasAdded(true);
+    } catch (error) {
+      setAddError(
+        typeof error === "string"
+          ? error
+          : "Unable to add this product. Please try again.",
+      );
+    }
+  };
 
   return (
     <article className="group overflow-hidden rounded-[22px] border border-white/10 bg-[#111111] transition duration-300 hover:-translate-y-1 hover:border-[#ccff00]/40 hover:shadow-[0_12px_40px_rgba(0,0,0,0.25)]">
@@ -63,7 +94,9 @@ const ProductCard = ({ product }) => {
 
           <button
             type="button"
-            className="flex items-center gap-2 rounded-xl bg-[#ccff00] px-3 py-2.5 text-xs font-semibold text-black transition hover:bg-[#b9e800]"
+            onClick={handleAddToCart}
+            disabled={isAdding}
+            className="flex items-center gap-2 rounded-xl bg-[#ccff00] px-3 py-2.5 text-xs font-semibold text-black transition hover:bg-[#b9e800] disabled:cursor-wait disabled:opacity-60"
           >
             <svg
               viewBox="0 0 24 24"
@@ -76,9 +109,14 @@ const ProductCard = ({ product }) => {
               <circle cx="10" cy="20" r="1" />
               <circle cx="18" cy="20" r="1" />
             </svg>
-            Add
+            {isAdding ? "Adding…" : wasAdded ? "Added" : "Add"}
           </button>
         </div>
+        {addError && (
+          <p role="alert" className="mt-2 text-xs text-red-400">
+            {addError}
+          </p>
+        )}
       </div>
     </article>
   );
